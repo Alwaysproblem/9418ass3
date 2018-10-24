@@ -43,9 +43,10 @@ def Merge_Data_Mat(data_x, data_y, rate, D):
     mergeMat = Sparse_form(data_x[random_list[0] - 1], data_y[random_list[0] - 1], len(data_y[random_list[0] - 1]), D)
     print(0)
     for index in range(1,len(random_list)):
-        print(index)
         newMat = Sparse_form(data_x[random_list[index] - 1], data_y[random_list[index] - 1], len(data_y[random_list[index] - 1]), D)
-        mergeMat = np.vstack((mergeMat, newMat))
+        print('new')
+        mergeMat = np.concatenate((mergeMat, newMat), axis = 0)
+        print(index)
     return mergeMat
 
 
@@ -56,7 +57,7 @@ D = 2035523
 # random_list = np.random.randint(1,8936,10)
 # print(random_list)
 # matrix = Select_Data_Mat(data_x,data_y,23,D)
-rate = 0.001
+rate = 0.01
 merge_matrix = Merge_Data_Mat(data_x, data_y, rate, D)
 # print(matrix)
 print(merge_matrix)
