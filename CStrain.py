@@ -1,7 +1,7 @@
 import os
 import glob
 import numpy as np
-from sklearn.decomposition import PCA
+# from queue import Queue
 
 path = None
 np.random.seed(1)
@@ -12,9 +12,8 @@ D = 2035523
 Comp_dims = 200
 #define the dimentional of compressed matrix.
 
-A = np.random.randn(Comp_dims, D)
+A = np.mat(np.random.randn(Comp_dims, D))
 # y = A * s, the s is sparse-matrix. the y is compressed measurements.
-
 
 def Sparse_form(X, y, len_y, D):
     sparseMat = np.zeros((len_y, D))
@@ -22,41 +21,55 @@ def Sparse_form(X, y, len_y, D):
         sparseMat[i-1, j-1] = v
     return sparseMat
 
-def Load_Data(path='./conll_train'):
+def Load_Data(path='./conll_train', sample = None):
+    x_comp_data = []
+    y_label = []
     print("Loading train Data...")
     dir = os.path.dirname(__file__)
+
     x_file_list = glob.glob(os.path.join(dir, path + "/*.x"))
     y_file_list = glob.glob(os.path.join(dir, path + "/*.y"))
 
     print(f"Parsing {len(x_file_list)} xfiles and {len(y_file_list)} yfiles.")
 
-    for X, y in list(zip(x_file_list, y_file_list)):
-        with open(f, "r",) as xf:
-            
+    if sample == None:
+        for X, y in list(zip(x_file_list, y_file_list)):
+            len_of_y = 0
+            with open(y, "r") as yf:
+                y_content = [int(row.strip()) for row in yf.readlines()]
+                len_of_y = len(y_content)
+                y_label.append(y_content)
 
-
-    # print(x_file_list[3])
-    # print(y_file_list[3])
-
-    # x_file_list.sort(key = lambda x: int(x[16:-2]))
-    # y_file_list.sort(key = lambda x: int(x[16:-2]))
-
-
-    # print("Parsing %s files" % len(file_list))
-    # for i, f in enumerate(file_list):
-    #     with open(f, "r",) as openf:
-    #         s = openf.readlines()
-    #         s_s = []
-    #         if ' ' in s[0]:
-    #             for line in s:
-    #                 s_s.append(tuple(int(k) for k in line.split()))
-    #             data_x.append(s_s)
-    #         else:
-    #             for line in s:
-    #                 s_s.append(int(line))
-    #             data_y.append(s_s)
-    # return data_x, data_y
-
+            with open(X, "r") as xf:
+                compX = []
+                content = [row.strip() for row in xf.readlines()]
+                for ind in range(1, len_of_y + 1):
+                    X_data = np.mat(np.zeros((Comp_dims, 1)))
+                    for c in content:
+                        tran = [int(t) for t in c.split()]
+                        if tran[0] == ind:
+                            X_data += A[:, tran[1]]
+                    if compX == []:
+                        compX = X_data
+                    else:
+                        compX = np.concatenate([compX, X_data], axis = 1)
+                        """
+                        the label is like:
+                          0    2
+                        the X data is like:
+                        [[18.  2.]
+                         [18.  2.]
+                         [18.  2.]
+                         [18.  2.]
+                         [18.  2.]
+                         [18.  2.]
+                         [18.  2.]
+                         [18.  2.]
+                         [18.  2.]
+                         [18.  2.]]
+                        """
+                x_comp_data.append(compX)
+    return x_comp_data, y_label
 
 
 def main():
