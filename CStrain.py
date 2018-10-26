@@ -1,7 +1,6 @@
 import os
 import glob
 import numpy as np
-# from queue import Queue
 from sklearn.gaussian_process import GaussianProcessClassifier
 from sklearn.gaussian_process.kernels import RBF
 from sklearn.metrics import accuracy_score
@@ -116,24 +115,24 @@ def main():
 
     C = 23
 
-    X_train, y_train = Load_Data(A, Comp_dims, sample=0.005)
-    X_dev, y_dev = Load_Data(A, Comp_dims, path=dev_path, sample=0.005)
+    X_train, y_train = Load_Data(A, Comp_dims, sample=0.05)
+    X_dev, y_dev = Load_Data(A, Comp_dims, path=dev_path, sample=0.05)
 
     print("start training...")
 
-    train_acc, dev_acc = softmax_classfier(X_train, y_train, Comp_dims, C, X_dev, y_dev)
+    # train_acc, dev_acc = softmax_classfier(X_train, y_train, Comp_dims, C, X_dev, y_dev)
 
-    # kernel = 1.0 * RBF(Comp_dims)
-    # gpc = GaussianProcessClassifier(kernel=kernel)
-    # gpc.fit(X_train, y_train)
+    kernel = 1.0 * RBF(Comp_dims)
+    gpc = GaussianProcessClassifier(kernel=kernel)
+    gpc.fit(X_train, y_train)
 
-    # y_train_pred = gpc.predict(X_train)
-    # train_acc = accuracy_score(y_train, y_train_pred)
+    y_train_pred = gpc.predict(X_train)
+    train_acc = accuracy_score(y_train, y_train_pred)
 
     print(f"the train accuracy is {train_acc}")
 
-    # y_dev_pred = gpc.predict(X_dev)
-    # dev_acc = accuracy_score(y_dev, y_dev_pred)
+    y_dev_pred = gpc.predict(X_dev)
+    dev_acc = accuracy_score(y_dev, y_dev_pred)
 
     print(f"the cross validation accuracy is {dev_acc}")
 
