@@ -114,7 +114,7 @@ def SVGP(X, y, X_test, y_test, C_num, start = 1):
     dims = X.shape[1]
     y = y - start
     SVGP = gpflow.models.SVGP(
-        X, y, kern=gpflow.kernels.RBF(dims) + gpflow.kernels.White(dims, variance = 0.01), Z=X.copy(),
+        X, y, kern=gpflow.kernels.RBF(dims) + gpflow.kernels.White(dims, variance = 0.01), Z=X[::7, :].copy(),
         likelihood=gpflow.likelihoods.MultiClass(C_num), num_latent=C_num, whiten=True, q_diag=True)
 
     gpflow.train.ScipyOptimizer().minimize(SVGP)
@@ -147,8 +147,13 @@ def main():
     # C = 23
     C = 22
 
-    X_train, y_train = Load_Data(A, Comp_dims, sample=0.01)
+    X_train, y_train = Load_Data(A, Comp_dims, sample=0.05)
     X_dev, y_dev = Load_Data(A, Comp_dims, path=dev_path, sample=0.015)
+
+    print("free the A  memory...")
+    import gc
+    del A
+    gc.collect()
 
     print("start training...")
 

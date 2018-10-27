@@ -113,15 +113,32 @@ def SVGP(X, y, X_test, y_test, C_num, start = 1):
     """
     dims = X.shape[1]
     y = y - start
-    SVGP = gpflow.models.SVGP(
-        X, y, kern=gpflow.kernels.RBF(dims) + gpflow.kernels.White(dims, variance = 0.01), Z=X.copy(),
-        likelihood=gpflow.likelihoods.MultiClass(C_num), num_latent=C_num, whiten=True, q_diag=True)
-    
+    gpflow.reset_default_graph_and_session()
+    with gpflow.defer_build():
+        SVGP = gpflow.models.SVGP(
+            X, y, kern=gpflow.kernels.Matern52(dims) + gpflow.kernels.RBF(dims, variance= 0.01), Z=X[::5, :].copy(),
+            likelihood=gpflow.likelihoods.MultiClass(C_num - 1), num_latent=C_num - 1, whiten=True, q_diag=True)
+        
+        SVGP.kern.kernels[0].variance.prior = gpflow.priors.Gamma(2,2)
+        SVGP.kern.kernels[0].lengthscales.prior = gpflow.priors.Gamma(2.,2.)
+        # SVGP.kern.kernels[1].variance.prior = gpflow.priors.Gamma(1,1)
+        # SVGP.kern.kernels[1].lengthscales.prior = gpflow.priors.Gamma(2.,2.)
+        SVGP.kern.kernels[1].variance.trainable = False
+        SVGP.feature.trainable = False
+        SVGP.likelihood.invlink.epsilon.set_trainable(True)
+        # print(SVGP.as_pandas_table())
+    SVGP.compile()
+    """
+                                                class          prior   transform  trainable      shape  fixed_shape                                              value
+        SVGP/feature/Z                    Parameter           None      (none)      False  (740, 50)         True  [[[[[  1.97255945   3.32104655   5.02928919 -1...
+        SVGP/kern/kernels/0/lengthscales  Parameter           None         +ve       True         ()         True                                                1.0
+        SVGP/kern/kernels/0/variance      Parameter           None         +ve       True         ()         True                                                1.0
+        SVGP/kern/kernels/1/variance      Parameter           None         +ve      False         ()         True                                               0.01
+        SVGP/likelihood/invlink/epsilon   Parameter  Beta(0.2,5.0)  [0.0, 1.0]       True         ()         True                                              0.001
+    """
 
-    SVGP.kern.kernels[1].variance.trainable = False
-    SVGP.feature.trainable = False
-    SVGP.likelihood.invlink.epsilon.set_trainable(True)
-
+    # gpflow.train.ScipyOptimizer().minimize(SVGP, maxiter=2500)
+    # gpflow.train.ScipyOptimizer().minimize(SVGP, maxiter=10000)
     gpflow.train.ScipyOptimizer().minimize(SVGP)
 
     p_train, _ = SVGP.predict_y(X)
@@ -151,7 +168,7 @@ def main():
 
     C = 23
 
-    X_train, y_train = Load_Data(A, Comp_dims, sample=0.025)
+    X_train, y_train = Load_Data(A, Comp_dims, sample=0.04)
     X_dev, y_dev = Load_Data(A, Comp_dims, path=dev_path, sample=0.015)
 
     print("free the A  memmory...")

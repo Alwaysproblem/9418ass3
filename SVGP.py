@@ -114,13 +114,8 @@ def SVGP(X, y, X_test, y_test, C_num, start = 1):
     dims = X.shape[1]
     y = y - start
     SVGP = gpflow.models.SVGP(
-        X, y, kern=gpflow.kernels.RBF(dims) + gpflow.kernels.White(dims, variance = 0.01), Z=X[::5, :].copy(),
-        likelihood=gpflow.likelihoods.MultiClass(C_num - 1), num_latent=C_num - 1, whiten=True, q_diag=True)
-    
-
-    SVGP.kern.kernels[1].variance.trainable = False
-    SVGP.feature.trainable = False
-    SVGP.likelihood.invlink.epsilon.set_trainable(True)
+        X, y, kern=gpflow.kernels.RBF(dims) + gpflow.kernels.White(dims, variance = 0.01), Z=X[::6, :].copy(),
+        likelihood=gpflow.likelihoods.MultiClass(C_num), num_latent=C_num, whiten=True, q_diag=True)
 
     gpflow.train.ScipyOptimizer().minimize(SVGP)
 
@@ -149,12 +144,13 @@ def main():
     A = np.mat(np.random.randn(Comp_dims, D))
     # y = A * s, the s is sparse-matrix. the y is compressed measurements.
 
-    C = 23
+    # C = 23
+    C = 22
 
-    X_train, y_train = Load_Data(A, Comp_dims, sample=0.023)
+    X_train, y_train = Load_Data(A, Comp_dims, sample=0.05)
     X_dev, y_dev = Load_Data(A, Comp_dims, path=dev_path, sample=0.015)
 
-    print("free the A  memmory...")
+    print("free the A  memory...")
     import gc
     del A
     gc.collect()
