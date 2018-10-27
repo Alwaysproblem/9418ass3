@@ -113,9 +113,27 @@ def SVGP(X, y, X_test, y_test, C_num, start = 1):
     """
     dims = X.shape[1]
     y = y - start
+
+    max_sample = 1700
+
+    # sample_rate = 0.3
+    sample_num = max_sample if X.shape[0] > max_sample else X.shape[0]
+    # print(f"x shape is {sample_num}")
+
+    sample_index = np.random.choice(range(X.shape[0]), sample_num, replace = False)
+    sample_index.sort()
+
+    # print(f"the shape is{sample_index}")
+
     SVGP = gpflow.models.SVGP(
-        X, y, kern=gpflow.kernels.RBF(dims) + gpflow.kernels.White(dims, variance = 0.01), Z=X[::6, :].copy(),
-        likelihood=gpflow.likelihoods.MultiClass(C_num), num_latent=C_num, whiten=True, q_diag=True)
+        X, y, 
+        kern=gpflow.kernels.RBF(dims) + gpflow.kernels.White(dims, variance = 0.01), 
+        Z=X[sample_index, :].copy(),
+        likelihood=gpflow.likelihoods.MultiClass(C_num), 
+        num_latent=C_num, 
+        whiten=True, 
+        q_diag=True
+    )
 
     gpflow.train.ScipyOptimizer().minimize(SVGP)
 
@@ -141,16 +159,21 @@ def main():
     Comp_dims = 50
     #define the dimentional of compressed matrix.
 
-    A = np.mat(np.random.randn(Comp_dims, D))
+    Miu = 2
+    Sigma = 0.1
+    # A = Miu + np.mat(np.random.randn(Comp_dims, D)) * Sigma
+
+    A = np.mat(np.random.normal(Miu, Sigma, (Comp_dims, D)))
+
     # y = A * s, the s is sparse-matrix. the y is compressed measurements.
 
-    # C = 23
-    C = 22
+    C = 23
+    # C = 22
 
     X_train, y_train = Load_Data(A, Comp_dims, sample=0.05)
     X_dev, y_dev = Load_Data(A, Comp_dims, path=dev_path, sample=0.015)
 
-    print("free the A  memory...")
+    print("free the A memory...")
     import gc
     del A
     gc.collect()

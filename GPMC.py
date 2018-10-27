@@ -112,21 +112,22 @@ def SVGP(X, y, X_test, y_test, C_num, start = 1):
     the y should like: (batch_size, 1) and start with 0 not 1
     """
     dims = X.shape[1]
+    print(f"the dims is {X.shape}")
     y = y - start
     gpflow.reset_default_graph_and_session()
     with gpflow.defer_build():
         SVGP = gpflow.models.SVGP(
-            X, y, kern=gpflow.kernels.Matern52(dims) + gpflow.kernels.RBF(dims, variance= 0.01), Z=X[::5, :].copy(),
-            likelihood=gpflow.likelihoods.MultiClass(C_num - 1), num_latent=C_num - 1, whiten=True, q_diag=True)
+            X, y, kern=gpflow.kernels.RBF(dims) + gpflow.kernels.Linear(dims, variance= 0.01), Z=X[::20, :].copy(),
+            likelihood=gpflow.likelihoods.MultiClass(C_num), num_latent=C_num, whiten=True, minibatch_size=256, q_diag=True)
         
-        SVGP.kern.kernels[0].variance.prior = gpflow.priors.Gamma(2,2)
-        SVGP.kern.kernels[0].lengthscales.prior = gpflow.priors.Gamma(2.,2.)
+        # SVGP.kern.kernels[0].variance.prior = gpflow.priors.Gamma(2,2)
+        # SVGP.kern.kernels[0].lengthscales.prior = gpflow.priors.Gamma(2.,2.)
         # SVGP.kern.kernels[1].variance.prior = gpflow.priors.Gamma(1,1)
         # SVGP.kern.kernels[1].lengthscales.prior = gpflow.priors.Gamma(2.,2.)
         SVGP.kern.kernels[1].variance.trainable = False
         SVGP.feature.trainable = False
         SVGP.likelihood.invlink.epsilon.set_trainable(True)
-        # print(SVGP.as_pandas_table())
+        print(SVGP.as_pandas_table())
     SVGP.compile()
     """
                                                 class          prior   transform  trainable      shape  fixed_shape                                              value
@@ -168,8 +169,8 @@ def main():
 
     C = 23
 
-    X_train, y_train = Load_Data(A, Comp_dims, sample=0.04)
-    X_dev, y_dev = Load_Data(A, Comp_dims, path=dev_path, sample=0.015)
+    X_train, y_train = Load_Data(A, Comp_dims, sample=0.15)
+    X_dev, y_dev = Load_Data(A, Comp_dims, path=dev_path, sample=0.1)
 
     print("free the A  memmory...")
     import gc
