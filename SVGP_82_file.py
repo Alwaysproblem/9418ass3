@@ -1,3 +1,8 @@
+# COMP9418 Assignment 3
+# Yongxi Yang    z5103793
+# Ke Song        z5043263
+# Qixing Li      z5104356
+
 import os
 import glob
 import numpy as np
@@ -264,9 +269,16 @@ def Test_File(x_file_list, SVGP_model, A, Comp_dims):
     for i in range(len(x_file_list)):
         X_test = Load_test_Data(A, Comp_dims, x_file_list[i])
         y_test_pred, _ = SVGP_model.predict_y(X_test)
-        y_test_pred = np.log(y_test_pred)
-        with open('predict.txt', 'a') as f:
-            print(y_test_pred, file = f, end="\n\n")
+        y_test_logpred = np.log(y_test_pred)
+        # print(y_test_pred)
+        with open('predict.txt', 'a') as fl:
+            # print(y_test_logpred, file = fl, end="\n\n")
+            for j in y_test_logpred:
+                for k in j:
+                    fl.write(str(k))
+                    fl.write(" ")
+                fl.write("\n")
+            fl.write("\n")
     return
 
 def main():
